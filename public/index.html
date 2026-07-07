@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0a0a16">
+  <title>NoGoon Club - Anti-Brainrot Streak Tracker</title>
+  
+  <!-- SEO & Icons -->
+  <meta name="description" content="A mobile-optimized streak tracker for you and your friends to beat the goon. Keep streaks, check in, and face hilarious Gen Z punishments.">
+  <link rel="apple-touch-icon" href="https://api.dicebear.com/7.x/bottts/svg?seed=nogoon&backgroundColor=0a0a16">
+  <link rel="icon" type="image/png" href="https://api.dicebear.com/7.x/bottts/svg?seed=nogoon&backgroundColor=0a0a16">
+  <link rel="manifest" href="/manifest.json">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  
+  <!-- CSS Stylesheet -->
+  <link rel="stylesheet" href="/app.css">
+  
+  <!-- Google Sign-In Library -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+  <!-- Confetti Canvas (for active checkins) -->
+  <canvas id="confetti-canvas"></canvas>
+
+  <div id="app-container">
+    
+    <!-- HEADER -->
+    <header class="app-header">
+      <div class="logo-container">
+        <span class="logo-icon">🗿</span>
+        <h1 class="logo-text">NOGOON<span class="logo-accent">.CLUB</span></h1>
+      </div>
+      <div id="header-user" class="header-user hidden">
+        <img id="user-avatar" src="" alt="Avatar" class="avatar-small">
+        <button id="btn-logout" class="btn-icon" title="Logout">🚪</button>
+      </div>
+    </header>
+
+    <main class="app-main">
+      
+      <!-- SCREEN 1: LOGIN -->
+      <section id="screen-login" class="screen active">
+        <div class="login-card glass">
+          <div class="emoji-hero">🤫🧏‍♂️</div>
+          <h2>Lock In, Sigmas.</h2>
+          <p class="login-subtitle">A high-stakes streak tracking club for you and the boys. Keep your streak active, check in daily, or face the council's punishments. No cap.</p>
+          
+          <!-- Google Sign-In Button Container -->
+          <div class="google-btn-wrapper">
+            <div id="google-signin-btn"></div>
+          </div>
+
+          <div class="divider">
+            <span>OR DEVELOPER MODE</span>
+          </div>
+
+          <div class="mock-login-section">
+            <p class="mock-title">Choose your character to test instantly:</p>
+            <div class="mock-buttons">
+              <button class="btn btn-mock" data-user="dax">
+                <img src="https://api.dicebear.com/7.x/pixel-art/svg?seed=dax" alt="Dax" class="avatar-tiny">
+                Dax
+              </button>
+              <button class="btn btn-mock" data-user="max">
+                <img src="https://api.dicebear.com/7.x/pixel-art/svg?seed=max" alt="Max" class="avatar-tiny">
+                Max
+              </button>
+              <button class="btn btn-mock" data-user="reese">
+                <img src="https://api.dicebear.com/7.x/pixel-art/svg?seed=reese" alt="Reese" class="avatar-tiny">
+                Reese
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 2: DASHBOARD (LEADERBOARD & PROFILE) -->
+      <section id="screen-dashboard" class="screen hidden">
+        
+        <!-- LEADERBOARD PODIUM -->
+        <div class="podium-card glass">
+          <h3 class="section-title">🏆 THE COUNCIL LEADERBOARD</h3>
+          <div class="podium-container">
+            
+            <!-- 2nd place -->
+            <div class="podium-spot spot-2">
+              <div class="avatar-wrapper">
+                <img id="podium-2-img" src="https://api.dicebear.com/7.x/pixel-art/svg?seed=empty2" alt="2nd" class="avatar-podium">
+                <span class="badge badge-silver">2</span>
+              </div>
+              <div class="podium-name" id="podium-2-name">Empty</div>
+              <div class="podium-streak" id="podium-2-streak">0d 0h</div>
+              <div class="nudge-container" id="podium-2-nudge-container"></div>
+              <div class="podium-bar"></div>
+            </div>
+
+            <!-- 1st place -->
+            <div class="podium-spot spot-1">
+              <div class="avatar-wrapper">
+                <div class="crown">👑</div>
+                <img id="podium-1-img" src="https://api.dicebear.com/7.x/pixel-art/svg?seed=empty1" alt="1st" class="avatar-podium">
+                <span class="badge badge-gold">1</span>
+              </div>
+              <div class="podium-name" id="podium-1-name">Empty</div>
+              <div class="podium-streak" id="podium-1-streak">0d 0h</div>
+              <div class="nudge-container" id="podium-1-nudge-container"></div>
+              <div class="podium-bar"></div>
+            </div>
+
+            <!-- 3rd place -->
+            <div class="podium-spot spot-3">
+              <div class="avatar-wrapper">
+                <img id="podium-3-img" src="https://api.dicebear.com/7.x/pixel-art/svg?seed=empty3" alt="3rd" class="avatar-podium">
+                <span class="badge badge-bronze">3</span>
+              </div>
+              <div class="podium-name" id="podium-3-name">Empty</div>
+              <div class="podium-streak" id="podium-3-streak">0d 0h</div>
+              <div class="nudge-container" id="podium-3-nudge-container"></div>
+              <div class="podium-bar"></div>
+            </div>
+            
+          </div>
+        </div>
+
+        <!-- RELAPSE PUNISHMENT BANNER (Shown if cooked) -->
+        <div id="cooked-banner" class="cooked-card glass hidden">
+          <div class="cooked-header">
+            <span class="cooked-icon">⚠️</span>
+            <h4>YOU ARE CURRENTLY COOKED!</h4>
+          </div>
+          <p class="cooked-desc">You broke your streak. The council has issued this mandatory punishment:</p>
+          <div class="punishment-box" id="active-punishment-text">
+            Doing 100 push-ups on camera.
+          </div>
+          <button id="btn-resolve-punishment" class="btn btn-primary btn-glow-pink">
+            📸 Upload Proof & Resurrect
+          </button>
+          <input type="file" id="punishment-proof-input" accept="image/*" class="hidden">
+        </div>
+
+        <!-- MY STATUS CARD -->
+        <div id="status-card" class="status-card glass">
+          <div class="status-header">
+            <h3 class="section-title">⚡ YOUR CURRENT STREAK</h3>
+            <span id="user-status-pill" class="status-pill active-pill">ACTIVE</span>
+          </div>
+          <div class="streak-value-container">
+            <div id="streak-time" class="streak-time">0d 0h</div>
+            <div class="highest-streak-label">Personal Best: <span id="highest-streak-value">0h</span></div>
+          </div>
+          
+          <div class="action-buttons">
+            <button id="btn-relapse-trigger" class="btn btn-glow-pink">
+              🥀 I Cooked It (Relapsed)
+            </button>
+          </div>
+        </div>
+
+        <!-- CHAT CARD -->
+        <div class="chat-card glass">
+          <h3 class="section-title">💬 THE SIGMA CHATROOM</h3>
+          
+          <div id="chat-messages" class="chat-messages">
+            <div class="chat-placeholder">Loading secret codes...</div>
+          </div>
+          
+          <!-- Photo preview before sending -->
+          <div id="chat-preview-container" class="chat-preview-container hidden">
+            <img id="chat-preview-img" src="" alt="Preview">
+            <button type="button" id="btn-chat-remove-preview" class="btn-preview-close">×</button>
+          </div>
+
+          <form id="chat-form" class="chat-form">
+            <input type="file" id="chat-photo-input" accept="image/*" class="hidden">
+            <button type="button" id="btn-chat-attach" class="btn-chat-action" title="Attach Photo">📷</button>
+            <input type="text" id="chat-input" placeholder="Type brainrot here..." autocomplete="off">
+            <button type="submit" class="btn-chat-send">⚡</button>
+          </form>
+        </div>
+
+        <!-- ACTIVITY FEED -->
+        <div class="feed-card glass">
+          <h3 class="section-title">📣 PUBLIC SHAME & HONOR FEED</h3>
+          <div id="feed-container" class="feed-container">
+            <!-- Feed items will be populated dynamically -->
+            <div class="feed-placeholder">No activity yet. Let's see who cooks it first...</div>
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+
+    <!-- RELAPSE MODAL -->
+    <div id="relapse-modal" class="modal hidden">
+      <div class="modal-content glass">
+        <h3>Why did you cook it, son? 🧐</h3>
+        <p class="modal-subtitle">State your excuse to the council. Be honest, no cap.</p>
+        <div class="relapse-reasons">
+          <button class="btn btn-reason" data-reason="Saw a TikTok edit of Mewing/Channing">Saw a brainrot TikTok edit</button>
+          <button class="btn btn-reason" data-reason="Late night scrolling alone in bed">Late night scrolling alone</button>
+          <button class="btn btn-reason" data-reason="Got bored, weak mindset">Got bored, weak mindset</button>
+          <button class="btn btn-reason" data-reason="Weak rizz, down bad">Weak rizz, down bad</button>
+          <button class="btn btn-reason" data-reason="No excuse, I folded. My bad.">No excuse, I folded. My bad.</button>
+        </div>
+        <button id="btn-modal-close" class="btn btn-text">Cancel, I actually didn't relapse!</button>
+      </div>
+    </div>
+
+    <!-- CLAIM MODAL -->
+    <div id="claim-modal" class="modal hidden">
+      <div class="modal-content glass">
+        <h3>Who are you? 🧐</h3>
+        <p class="modal-subtitle">Claim your identity. This binds your Google account to this character permanently. No cap.</p>
+        <div id="claim-options" class="relapse-reasons">
+          <!-- Unclaimed slots render here -->
+        </div>
+        <p id="claim-error" style="color: var(--accent-pink); font-size: 0.8rem; text-align: center; margin-top: 8px; font-weight: 600;"></p>
+      </div>
+    </div>
+
+    <!-- NOTIFICATION POPUP -->
+    <div id="notification" class="notification hidden">
+      <span id="notification-message">Streak updated!</span>
+    </div>
+
+    <footer class="app-footer">
+      <p>🧠 Stay focused, control your mind, level up your life.</p>
+      <p class="safari-hint">Add this app to your Home Screen for the full full-screen experience. Tap Share ⬆️ and select "Add to Home Screen".</p>
+    </footer>
+
+  </div>
+
+  <!-- LIGHTBOX MODAL -->
+  <div id="lightbox-modal" class="lightbox-modal hidden">
+    <span class="lightbox-close">&times;</span>
+    <img class="lightbox-content" id="lightbox-img" alt="Enlarged proof">
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>

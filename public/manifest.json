@@ -1,0 +1,21 @@
+{
+  "name": "NoGoon Club",
+  "short_name": "NoGoon",
+  "description": "Streak tracker for friends to lock in and stop gooning.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#05050f",
+  "theme_color": "#05050f",
+  "icons": [
+    {
+      "src": "https://api.dicebear.com/7.x/bottts/svg?seed=nogoon&backgroundColor=0a0a16",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://api.dicebear.com/7.x/bottts/svg?seed=nogoon&backgroundColor=0a0a16",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
