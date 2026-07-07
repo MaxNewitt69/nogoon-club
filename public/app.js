@@ -283,7 +283,22 @@ async function loadAppData() {
       await updateDashboard();
       await updateChatMessages();
     } else {
-      // Not logged in
+      // Not logged in - check for auto-login profile
+      const savedProfile = localStorage.getItem('nogoon_profile');
+      if (savedProfile) {
+        const loginRes = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: savedProfile })
+        });
+        if (loginRes.ok) {
+          const loginData = await loginRes.json();
+          state.user = loginData.user;
+          await loadAppData();
+          return;
+        }
+      }
+
       headerUser.classList.add('hidden');
       screenLogin.classList.remove('hidden');
       screenDashboard.classList.add('hidden');
@@ -592,6 +607,7 @@ mockButtons.forEach(btn => {
       const data = await res.json();
       if (res.ok) {
         notify(`Logged in as ${data.user.name}! Lock in.`);
+        localStorage.setItem('nogoon_profile', mockUser);
         state.user = data.user;
         await loadAppData();
       } else {
@@ -609,6 +625,7 @@ btnLogout.addEventListener('click', async () => {
     const res = await fetch('/api/auth/logout', { method: 'POST' });
     if (res.ok) {
       notify('Logged out. Stay strong.');
+      localStorage.removeItem('nogoon_profile');
       state.user = null;
       await loadAppData();
     }
