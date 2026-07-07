@@ -42,11 +42,6 @@ const lightboxModal = document.getElementById('lightbox-modal');
 const lightboxImg = document.getElementById('lightbox-img');
 const lightboxClose = document.querySelector('.lightbox-close');
 
-// Claim Modal Elements
-const claimModal = document.getElementById('claim-modal');
-const claimOptions = document.getElementById('claim-options');
-const claimError = document.getElementById('claim-error');
-
 let chatAttachedImageBase64 = null;
 let chatMessagesList = [];
 
@@ -268,15 +263,9 @@ async function updateChatMessages() {
   } catch (err) {
     console.error('Failed to update chat messages:', err);
   }
-}
-
-// Get user state and update UI
+}// Get user state and update UI
 async function loadAppData() {
   try {
-    const configRes = await fetch('/api/config');
-    const configData = await configRes.json();
-    state.googleClientId = configData.googleClientId;
-    
     // Attempt to load current user session
     const meRes = await fetch('/api/me');
     if (meRes.ok) {
@@ -293,121 +282,15 @@ async function loadAppData() {
       // Populate dashboard
       await updateDashboard();
       await updateChatMessages();
-      
-      // Start Google Sign-in background verification trigger if needed,
-      // but session is active, so we are good.
     } else {
       // Not logged in
       headerUser.classList.add('hidden');
       screenLogin.classList.remove('hidden');
       screenDashboard.classList.add('hidden');
-      setupGoogleSignIn();
     }
   } catch (err) {
     console.error('Error loading app data:', err);
-    // Even if me fails, try to load Google client id for sign-in
-    setupGoogleSignIn();
   }
-}
-
-// Google Sign-In setup
-function setupGoogleSignIn() {
-  if (!state.googleClientId) {
-    console.warn('Google client ID is missing. Google Auth button will not render.');
-    return;
-  }
-  
-  if (typeof google === 'undefined') {
-    setTimeout(setupGoogleSignIn, 500);
-    return;
-  }
-
-  google.accounts.id.initialize({
-    client_id: state.googleClientId,
-    callback: handleGoogleCredentialResponse
-  });
-
-  google.accounts.id.renderButton(
-    document.getElementById('google-signin-btn'),
-    { theme: 'filled_dark', size: 'large', width: '280' }
-  );
-}
-
-// Handle login callback
-async function handleGoogleCredentialResponse(response) {
-  try {
-    const res = await fetch('/api/auth/google', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ credential: response.credential })
-    });
-    
-    const data = await res.json();
-    if (res.ok) {
-      if (data.claimRequired) {
-        showClaimModal(response.credential, data.unclaimed);
-      } else {
-        notify('Logged in successfully! 🤫🧏‍♂️');
-        state.user = data.user;
-        await loadAppData();
-      }
-    } else {
-      notify(data.error || 'Google Authentication failed', true);
-    }
-  } catch (err) {
-    notify('Failed to connect to authentication server', true);
-  }
-}
-
-// Show character claim options modal
-function showClaimModal(credential, unclaimedList) {
-  claimError.textContent = '';
-  claimOptions.innerHTML = '';
-  
-  if (unclaimedList.length === 0) {
-    claimOptions.innerHTML = '<p style="text-align:center;color:var(--text-secondary);">All identities have been claimed! You are too late, sigma.</p>';
-    claimModal.classList.remove('hidden');
-    return;
-  }
-  
-  unclaimedList.forEach(identity => {
-    const btn = document.createElement('button');
-    btn.className = 'btn btn-reason';
-    const seedName = identity.id;
-    btn.innerHTML = `
-      <img src="https://api.dicebear.com/7.x/pixel-art/svg?seed=${seedName}" alt="${identity.name}" class="avatar-tiny">
-      Claim ${identity.name}
-    `;
-    
-    btn.addEventListener('click', async () => {
-      btn.disabled = true;
-      claimError.textContent = 'Claiming...';
-      try {
-        const claimRes = await fetch('/api/auth/google/claim', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ credential, claimId: identity.id })
-        });
-        const claimData = await claimRes.json();
-        if (claimRes.ok) {
-          notify(`Identity claimed! Welcome to the club, ${claimData.user.name}.`);
-          claimModal.classList.add('hidden');
-          state.user = claimData.user;
-          await loadAppData();
-        } else {
-          claimError.textContent = claimData.error || 'Failed to claim identity.';
-          btn.disabled = false;
-        }
-      } catch (err) {
-        claimError.textContent = 'Server connection failed.';
-        btn.disabled = false;
-      }
-    });
-    
-    claimOptions.appendChild(btn);
-  });
-  
-  claimModal.classList.remove('hidden');
 }
 
 // Update dashboard details (leaderboard, user status, recent events)
@@ -695,27 +578,27 @@ lightboxModal.addEventListener('click', () => {
   lightboxModal.classList.add('hidden');
 });
 
-// Mock Login Buttons
+// Profile Login Buttons
 const mockButtons = document.querySelectorAll('.btn-mock');
 mockButtons.forEach(btn => {
   btn.addEventListener('click', async () => {
     const mockUser = btn.getAttribute('data-user');
     try {
-      const res = await fetch('/api/auth/mock', {
+      const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mockUser })
+        body: JSON.stringify({ username: mockUser })
       });
       const data = await res.json();
       if (res.ok) {
-        notify('Developer mock session started!');
+        notify(`Logged in as ${data.user.name}! Lock in.`);
         state.user = data.user;
         await loadAppData();
       } else {
         notify(data.error, true);
       }
     } catch (err) {
-      notify('Mock login request failed', true);
+      notify('Login request failed', true);
     }
   });
 });

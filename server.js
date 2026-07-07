@@ -2,16 +2,12 @@ require('dotenv').config();
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const jwt = require('jsonwebtoken');
-const { OAuth2Client } = require('google-auth-library');
 const db = require('./db');
 const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'nogoon_secret_key_1337_sigmas';
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
-
-const googleClient = GOOGLE_CLIENT_ID ? new OAuth2Client(GOOGLE_CLIENT_ID) : null;
 
 // Middleware
 app.use(express.json());
@@ -111,139 +107,17 @@ async function authenticateToken(req, res, next) {
 
 // --- API Endpoints ---
 
-// Get config (Google Client ID)
-app.get('/api/config', (req, res) => {
-  res.json({ googleClientId: GOOGLE_CLIENT_ID });
-});
-
-// Google Sign-In
-app.post('/api/auth/google', async (req, res) => {
-  const { credential } = req.body;
-  if (!credential) return res.status(400).json({ error: 'Missing credential' });
-
-  try {
-    let payload;
-    if (googleClient) {
-      const ticket = await googleClient.verifyIdToken({
-        idToken: credential,
-        audience: GOOGLE_CLIENT_ID
-      });
-      payload = ticket.getPayload();
-    } else {
-      return res.status(500).json({ error: 'Google client not configured on server.' });
-    }
-
-    const googleId = payload.sub;
-    const email = payload.email;
-    const picture = payload.picture;
-
-    // Check if user with this googleId exists
-    const userRes = await db.query(`SELECT * FROM users WHERE google_id = $1`, [googleId]);
-    let user = userRes.rows[0];
-
-    if (!user) {
-      // Need to claim one of Dax, Max, Reese
-      const unclaimedRes = await db.query(`SELECT id, name FROM users WHERE google_id IS NULL`);
-      return res.json({ 
-        claimRequired: true, 
-        googleId, 
-        email, 
-        picture,
-        unclaimed: unclaimedRes.rows 
-      });
-    }
-
-    // Create JWT
-    const token = jwt.sign({ id: user.id, email: user.email, name: user.name, picture: user.picture }, JWT_SECRET, { expiresIn: '7d' });
-    
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-    });
-
-    res.json({ success: true, user });
-  } catch (err) {
-    console.error('Google Auth verification error:', err);
-    res.status(400).json({ error: 'Invalid ID Token' });
-  }
-});
-
-// Google Claim Identity
-app.post('/api/auth/google/claim', async (req, res) => {
-  const { credential, claimId } = req.body;
-  if (!credential || !claimId) return res.status(400).json({ error: 'Missing parameters' });
-
-  try {
-    let payload;
-    if (googleClient) {
-      const ticket = await googleClient.verifyIdToken({
-        idToken: credential,
-        audience: GOOGLE_CLIENT_ID
-      });
-      payload = ticket.getPayload();
-    } else {
-      return res.status(500).json({ error: 'Google client not configured on server.' });
-    }
-
-    const googleId = payload.sub;
-    const email = payload.email;
-    const picture = payload.picture;
-
-    // Check if googleId already claimed
-    const checkUser = await db.query(`SELECT * FROM users WHERE google_id = $1`, [googleId]);
-    if (checkUser.rows[0]) {
-      return res.status(400).json({ error: 'You have already claimed an identity! Log in normally.' });
-    }
-
-    // Check if target identity is free
-    const targetRes = await db.query(`SELECT * FROM users WHERE id = $1`, [claimId]);
-    const target = targetRes.rows[0];
-    
-    if (!target) return res.status(404).json({ error: 'Target identity not found.' });
-    if (target.google_id) {
-      return res.status(400).json({ error: `Identity ${target.name} has already been claimed by a friend!` });
-    }
-
-    // Claim target identity
-    const now = new Date().toISOString();
-    await db.query(
-      `UPDATE users SET google_id = $1, email = $2, picture = $3, last_check_in = $4 WHERE id = $5`,
-      [googleId, email, picture, now, claimId]
-    );
-
-    const updatedUserRes = await db.query(`SELECT * FROM users WHERE id = $1`, [claimId]);
-    const user = updatedUserRes.rows[0];
-
-    // Create JWT
-    const token = jwt.sign({ id: user.id, email: user.email, name: user.name, picture: user.picture }, JWT_SECRET, { expiresIn: '7d' });
-    
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000
-    });
-
-    res.json({ success: true, user });
-  } catch (err) {
-    console.error('Google claim error:', err);
-    res.status(500).json({ error: 'Failed to claim identity' });
-  }
-});
-
-// Mock Login for Dev / Testing
-app.post('/api/auth/mock', async (req, res) => {
-  const { mockUser } = req.body;
-  const mockProfiles = {
+// Authentication Login
+app.post('/api/auth/login', async (req, res) => {
+  const { username } = req.body;
+  const profiles = {
     dax: { id: 'dax', email: 'dax@nogoon.club', name: 'Dax 🤫🧏‍♂️', picture: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=dax' },
     max: { id: 'max', email: 'max@nogoon.club', name: 'Max ⚡', picture: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=max' },
     reese: { id: 'reese', email: 'reese@nogoon.club', name: 'Reese 👑', picture: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=reese' }
   };
 
-  const profile = mockProfiles[mockUser];
-  if (!profile) return res.status(400).json({ error: 'Invalid mock user' });
+  const profile = profiles[username];
+  if (!profile) return res.status(400).json({ error: 'Invalid user selection' });
 
   const now = new Date().toISOString();
 
@@ -271,8 +145,8 @@ app.post('/api/auth/mock', async (req, res) => {
 
     res.json({ success: true, user });
   } catch (err) {
-    console.error('Mock login error:', err);
-    res.status(500).json({ error: 'Mock login database error' });
+    console.error('Login error:', err);
+    res.status(500).json({ error: 'Login database error' });
   }
 });
 
@@ -547,9 +421,6 @@ app.get('*', (req, res) => {
 db.initDb().then(() => {
   app.listen(PORT, () => {
     console.log(`NoGoon Server is cooking on port ${PORT}! 🚀`);
-    if (!GOOGLE_CLIENT_ID) {
-      console.log('WARNING: GOOGLE_CLIENT_ID not set. Google Sign-In will not function, but Mock Login is enabled for dev.');
-    }
   });
 }).catch(err => {
   console.error('Server failed to start due to database error:', err);

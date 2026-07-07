@@ -21,9 +21,6 @@
   
   <!-- CSS Stylesheet -->
   <link rel="stylesheet" href="/app.css">
-  
-  <!-- Google Sign-In Library -->
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
   <!-- Confetti Canvas (for active checkins) -->
@@ -50,31 +47,22 @@
         <div class="login-card glass">
           <div class="emoji-hero">🤫🧏‍♂️</div>
           <h2>Lock In, Sigmas.</h2>
-          <p class="login-subtitle">A high-stakes streak tracking club for you and the boys. Keep your streak active, check in daily, or face the council's punishments. No cap.</p>
+          <p class="login-subtitle">A high-stakes streak tracking club for you and the boys. Keep your streak active, or face the council's punishments. No cap.</p>
           
-          <!-- Google Sign-In Button Container -->
-          <div class="google-btn-wrapper">
-            <div id="google-signin-btn"></div>
-          </div>
-
-          <div class="divider">
-            <span>OR DEVELOPER MODE</span>
-          </div>
-
-          <div class="mock-login-section">
-            <p class="mock-title">Choose your character to test instantly:</p>
-            <div class="mock-buttons">
-              <button class="btn btn-mock" data-user="dax">
-                <img src="https://api.dicebear.com/7.x/pixel-art/svg?seed=dax" alt="Dax" class="avatar-tiny">
-                Dax
+          <div class="mock-login-section" style="margin-top: 30px;">
+            <p class="mock-title" style="font-weight: 800; color: var(--accent-cyan); font-size: 0.9rem; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px;">Who are you? Choose to entry:</p>
+            <div class="mock-buttons" style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
+              <button class="btn btn-mock" data-user="dax" style="display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 12px; font-size: 1rem;">
+                <img src="https://api.dicebear.com/7.x/pixel-art/svg?seed=dax" alt="Dax" class="avatar-tiny" style="width: 24px; height: 24px;">
+                Dax 🤫🧏‍♂️
               </button>
-              <button class="btn btn-mock" data-user="max">
-                <img src="https://api.dicebear.com/7.x/pixel-art/svg?seed=max" alt="Max" class="avatar-tiny">
-                Max
+              <button class="btn btn-mock" data-user="max" style="display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 12px; font-size: 1rem;">
+                <img src="https://api.dicebear.com/7.x/pixel-art/svg?seed=max" alt="Max" class="avatar-tiny" style="width: 24px; height: 24px;">
+                Max ⚡
               </button>
-              <button class="btn btn-mock" data-user="reese">
-                <img src="https://api.dicebear.com/7.x/pixel-art/svg?seed=reese" alt="Reese" class="avatar-tiny">
-                Reese
+              <button class="btn btn-mock" data-user="reese" style="display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 12px; font-size: 1rem;">
+                <img src="https://api.dicebear.com/7.x/pixel-art/svg?seed=reese" alt="Reese" class="avatar-tiny" style="width: 24px; height: 24px;">
+                Reese 👑
               </button>
             </div>
           </div>
@@ -211,18 +199,6 @@
           <button class="btn btn-reason" data-reason="No excuse, I folded. My bad.">No excuse, I folded. My bad.</button>
         </div>
         <button id="btn-modal-close" class="btn btn-text">Cancel, I actually didn't relapse!</button>
-      </div>
-    </div>
-
-    <!-- CLAIM MODAL -->
-    <div id="claim-modal" class="modal hidden">
-      <div class="modal-content glass">
-        <h3>Who are you? 🧐</h3>
-        <p class="modal-subtitle">Claim your identity. This binds your Google account to this character permanently. No cap.</p>
-        <div id="claim-options" class="relapse-reasons">
-          <!-- Unclaimed slots render here -->
-        </div>
-        <p id="claim-error" style="color: var(--accent-pink); font-size: 0.8rem; text-align: center; margin-top: 8px; font-weight: 600;"></p>
       </div>
     </div>
 
