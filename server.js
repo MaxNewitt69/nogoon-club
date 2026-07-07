@@ -4,6 +4,7 @@ const cookieParser = require('cookie-parser');
 const jwt = require('jsonwebtoken');
 const { OAuth2Client } = require('google-auth-library');
 const db = require('./db');
+const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
